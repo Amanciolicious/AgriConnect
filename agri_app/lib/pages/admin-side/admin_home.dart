@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:agri_app/pages/login_page.dart'; // Import the login page
+import 'package:agri_app/pages/login_page.dart';
+import 'package:agri_app/pages/admin-side/admin_profile.dart';
 
 class AdminHome extends StatelessWidget {
   const AdminHome({super.key});
 
-  // Logout method
   void _logout(BuildContext context) {
-    // Clear session or authentication data here if necessary
-    // Example: SharedPreferences, FirebaseAuth, or any other session management
-
-    // Navigate to the login page and clear navigation stack
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => const LoginPage()),
-      (Route<dynamic> route) => false, // Remove all previous routes
+      (Route<dynamic> route) => false,
+    );
+  }
+
+  void _navigateToProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminProfile()),
     );
   }
 
@@ -21,13 +24,13 @@ class AdminHome extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Admin Dashboard"),
+        title: const Text("AgriConnect Admin Dashboard"),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
             onPressed: () {
-              // Handle notifications
+              // Handle platform notifications
             },
           ),
         ],
@@ -37,41 +40,65 @@ class AdminHome extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue.shade700),
-              child: const Text(
-                "Admin Panel",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
+              decoration: BoxDecoration(color: Colors.green.shade700),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    "AgriConnect Admin",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Platform Management",
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
             ListTile(
               leading: const Icon(Icons.dashboard),
               title: const Text("Dashboard"),
               onTap: () {
-                // Navigate to dashboard (if needed)
+                Navigator.pop(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text("Profile"),
               onTap: () {
-                // Navigate to profile page (if needed)
+                Navigator.pop(context);
+                _navigateToProfile(context);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text("Settings"),
+              leading: const Icon(Icons.people),
+              title: const Text("User Management"),
               onTap: () {
-                // Navigate to settings page (if needed)
+                // Navigate to user management
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.list),
+              title: const Text("Product Listings"),
+              onTap: () {
+                // Navigate to product listings management
+                Navigator.pop(context);
               },
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Colors.red),
               title: const Text("Logout"),
-              onTap: () => _logout(context), // Logout on tap
+              onTap: () => _logout(context),
             ),
           ],
         ),
@@ -82,16 +109,20 @@ class AdminHome extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Overview Cards
+              // Platform Overview Cards
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildOverviewCard(
-                      title: "Total Sales",
-                      value: "\$12,345",
-                      color: Colors.green),
+                    title: "Total Farmers",
+                    value: "150",
+                    color: Colors.green,
+                  ),
                   _buildOverviewCard(
-                      title: "Active Users", value: "234", color: Colors.blue),
+                    title: "Total Buyers",
+                    value: "200",
+                    color: Colors.blue,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -99,35 +130,39 @@ class AdminHome extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildOverviewCard(
-                      title: "Products Listed",
-                      value: "45",
-                      color: Colors.orange),
+                    title: "Product Listings",
+                    value: "750",
+                    color: Colors.orange,
+                  ),
                   _buildOverviewCard(
-                      title: "Pending Orders", value: "8", color: Colors.red),
+                    title: "Transactions",
+                    value: "450",
+                    color: Colors.purple,
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
-              // Recent Orders Section
+              // Recent Transactions Section
               Text(
-                "Recent Orders",
+                "Recent Transactions",
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge!
                     .copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              _buildRecentOrdersList(),
+              _buildRecentTransactionsList(),
               const SizedBox(height: 24),
-              // Quick Links
+              // Platform Management
               Text(
-                "Manage",
+                "Platform Management",
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge!
                     .copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              _buildQuickLinks(),
+              _buildPlatformManagementLinks(context),
             ],
           ),
         ),
@@ -135,9 +170,12 @@ class AdminHome extends StatelessWidget {
     );
   }
 
-  // Widget for Overview Cards
-  Widget _buildOverviewCard(
-      {required String title, required String value, required Color color}) {
+  // Overview Card Widget
+  Widget _buildOverviewCard({
+    required String title,
+    required String value,
+    required Color color,
+  }) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -147,7 +185,6 @@ class AdminHome extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          // ignore: deprecated_member_use
           color: color.withOpacity(0.1),
         ),
         child: Column(
@@ -157,13 +194,19 @@ class AdminHome extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                  fontSize: 14, color: color, fontWeight: FontWeight.bold),
+                fontSize: 14,
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               value,
               style: TextStyle(
-                  fontSize: 20, color: color, fontWeight: FontWeight.bold),
+                fontSize: 20,
+                color: color,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
@@ -171,8 +214,8 @@ class AdminHome extends StatelessWidget {
     );
   }
 
-  // Widget for Recent Orders
-  Widget _buildRecentOrdersList() {
+  // Recent Transactions List
+  Widget _buildRecentTransactionsList() {
     return ListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -181,40 +224,42 @@ class AdminHome extends StatelessWidget {
         (index) => ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.green,
-            child: Text((index + 1).toString(),
-                style: const TextStyle(color: Colors.white)),
+            child: Text(
+              (index + 1).toString(),
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
-          title: Text("Order #${index + 12345}"),
-          subtitle: Text("Customer: User ${index + 1}"),
+          title: Text("Transaction #${index + 12345}"),
+          subtitle: Text("Farmer: John Doe, Buyer: Jane Smith"),
           trailing: const Text("\$120"),
         ),
       ),
     );
   }
 
-  // Widget for Quick Links
-  Widget _buildQuickLinks() {
+  // Platform Management Links
+  Widget _buildPlatformManagementLinks(BuildContext context) {
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.inventory, color: Colors.blue),
-          title: const Text("Manage Products"),
+          leading: const Icon(Icons.people, color: Colors.blue),
+          title: const Text("User Registrations"),
           onTap: () {
-            // Navigate to Product Management
+            // Navigate to User Registrations
           },
         ),
         ListTile(
-          leading: const Icon(Icons.shopping_cart, color: Colors.green),
-          title: const Text("View Orders"),
+          leading: const Icon(Icons.list_alt, color: Colors.green),
+          title: const Text("Product Listings"),
           onTap: () {
-            // Navigate to Orders Page
+            // Navigate to Product Listings
           },
         ),
         ListTile(
-          leading: const Icon(Icons.people, color: Colors.orange),
-          title: const Text("Manage Users"),
+          leading: const Icon(Icons.security, color: Colors.red),
+          title: const Text("Platform Security"),
           onTap: () {
-            // Navigate to User Management
+            // Navigate to Platform Security Settings
           },
         ),
       ],
