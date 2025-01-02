@@ -13,16 +13,17 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   final _formKey = GlobalKey<FormState>();
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
-  
+
   // Updated initial position to center of Southeast Asia (roughly around central Thailand)
   final LatLng _initialPosition = const LatLng(12.0, 105.0);
-  
+
   // Define Southeast Asia boundaries
-  final LatLngBounds _seaBounds =  LatLngBounds(
-    southwest: const LatLng(-11.0, 92.0),  // Covers Indonesia
-    northeast: const LatLng(29.0, 142.0),  // Covers Philippines and northern regions
+  final LatLngBounds _seaBounds = LatLngBounds(
+    southwest: const LatLng(-11.0, 92.0), // Covers Indonesia
+    northeast:
+        const LatLng(29.0, 142.0), // Covers Philippines and northern regions
   );
-  
+
   LatLng? _selectedLocation;
 
   final _nameController = TextEditingController();
@@ -30,6 +31,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   final _descriptionController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  double _rating = 0.0; // Rating variable
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +78,10 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                       onTap: _handleMapTap,
                       myLocationEnabled: true,
                       myLocationButtonEnabled: true,
-                      minMaxZoomPreference: const MinMaxZoomPreference(4, 18), // Set zoom limits
-                      cameraTargetBounds: CameraTargetBounds(_seaBounds), // Restrict panning
+                      minMaxZoomPreference:
+                          const MinMaxZoomPreference(4, 18), // Set zoom limits
+                      cameraTargetBounds:
+                          CameraTargetBounds(_seaBounds), // Restrict panning
                     ),
                   ),
                 ),
@@ -96,18 +100,22 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                           fillColor: Colors.white,
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.my_location),
-                            onPressed: _selectedLocation != null 
-                              ? () => _latitudeController.text = _selectedLocation!.latitude.toString()
-                              : null,
+                            onPressed: _selectedLocation != null
+                                ? () => _latitudeController.text =
+                                    _selectedLocation!.latitude.toString()
+                                : null,
                           ),
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter latitude';
                           }
                           final lat = double.tryParse(value);
-                          if (lat == null || lat < _seaBounds.southwest.latitude || lat > _seaBounds.northeast.latitude) {
+                          if (lat == null ||
+                              lat < _seaBounds.southwest.latitude ||
+                              lat > _seaBounds.northeast.latitude) {
                             return 'Latitude must be within Southeast Asia';
                           }
                           return null;
@@ -128,18 +136,22 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                           fillColor: Colors.white,
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.my_location),
-                            onPressed: _selectedLocation != null 
-                              ? () => _longitudeController.text = _selectedLocation!.longitude.toString()
-                              : null,
+                            onPressed: _selectedLocation != null
+                                ? () => _longitudeController.text =
+                                    _selectedLocation!.longitude.toString()
+                                : null,
                           ),
                         ),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter longitude';
                           }
                           final lng = double.tryParse(value);
-                          if (lng == null || lng < _seaBounds.southwest.longitude || lng > _seaBounds.northeast.longitude) {
+                          if (lng == null ||
+                              lng < _seaBounds.southwest.longitude ||
+                              lng > _seaBounds.northeast.longitude) {
                             return 'Longitude must be within Southeast Asia';
                           }
                           return null;
@@ -205,6 +217,28 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                // Rating Slider
+                Row(
+                  children: [
+                    const Text('Rating:'),
+                    Expanded(
+                      child: Slider(
+                        value: _rating,
+                        min: 0,
+                        max: 5,
+                        divisions: 5,
+                        label: _rating.toStringAsFixed(1),
+                        onChanged: (double value) {
+                          setState(() {
+                            _rating = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Text('${_rating.toStringAsFixed(1)}'),
+                  ],
+                ),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _submitForm,
@@ -232,7 +266,8 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
     // Check if the tapped position is within bounds
     if (!_seaBounds.contains(position)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a location within Southeast Asia')),
+        const SnackBar(
+            content: Text('Please select a location within Southeast Asia')),
       );
       return;
     }
@@ -254,10 +289,10 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
   void _updateMapFromCoordinates() {
     final lat = double.tryParse(_latitudeController.text);
     final lng = double.tryParse(_longitudeController.text);
-    
+
     if (lat != null && lng != null) {
       final newPosition = LatLng(lat, lng);
-      
+
       // Check if the position is within bounds
       if (!_seaBounds.contains(newPosition)) {
         return;
@@ -273,7 +308,7 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
           ),
         };
       });
-      
+
       _mapController?.animateCamera(
         CameraUpdate.newLatLng(newPosition),
       );
@@ -285,12 +320,13 @@ class _AddFarmScreenState extends State<AddFarmScreen> {
       try {
         final lat = double.parse(_latitudeController.text);
         final lng = double.parse(_longitudeController.text);
-        
+
         final farmData = {
           'name': _nameController.text,
           'address': _addressController.text,
           'description': _descriptionController.text,
           'location': GeoPoint(lat, lng),
+          'rating': _rating, // Add rating to the data
           'timestamp': FieldValue.serverTimestamp(),
         };
 
